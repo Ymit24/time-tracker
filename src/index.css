@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-surface-0: #faf9f6;
+  --color-surface-1: #f2f0ec;
+  --color-surface-2: #ffffff;
+  --color-surface-3: #e8e5df;
+  --color-ink-0: #141422;
+  --color-ink-1: #5c5c72;
+  --color-ink-2: #9494a8;
+  --color-amber-accent: #c2830a;
+  --color-teal-accent: #0d9468;
+  --color-rose-accent: #d43b50;
+  --color-running-pulse: #10b981;
+}
+
+/* Dark mode overrides via CSS variables */
+.dark {
+  --color-surface-0: #0b0c10;
+  --color-surface-1: #13141c;
+  --color-surface-2: #1a1c28;
+  --color-surface-3: #282a3a;
+  --color-ink-0: #e6e6f0;
+  --color-ink-1: #9496aa;
+  --color-ink-2: #5e6078;
+  --color-amber-accent: #f0a830;
+  --color-teal-accent: #34d399;
+  --color-rose-accent: #fb7185;
+  --color-running-pulse: #34d399;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-0);
+  color: var(--color-ink-0);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-3);
+  border-radius: 3px;
+}
+
+/* Pulse animation for running timers */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.running-dot {
+  position: relative;
+}
+
+.running-dot::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--color-running-pulse);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* Smooth entry animations */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.entry-row {
+  animation: slide-in 0.25s ease-out;
+}
+
+/* Category badge subtle hover */
+.category-badge {
+  transition: all 0.15s ease;
+}
+.category-badge:hover {
+  filter: brightness(1.1);
+}
+
+/* Button base transitions */
+.btn-base {
+  transition: all 0.15s ease;
+}
+.btn-base:active {
+  transform: scale(0.96);
+}
+
+/* Tab indicator slide animation */
+@keyframes tab-slide {
+  from { opacity: 0; transform: scaleX(0.7); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+.tab-indicator {
+  animation: tab-slide 0.2s ease-out;
+}
+
+/* Input focus ring */
+input:focus, select:focus {
+  outline: none;
+}
+
+/* Combobox dropdown */
+.dropdown-enter {
+  animation: dropdown-in 0.15s ease-out;
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Number tabular figures for time displays */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
