@@ -1,11 +1,52 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { formatDuration, formatTime, getEntryDuration, getCategoryColor } from '../lib/utils';
+import { formatDuration, formatTime, getEntryDuration, getCategoryColor, isoToTimeInput, timeInputToISO } from '../lib/utils';
 import CategoryPicker from './CategoryPicker';
 
+function InlineTimeEdit({ isoValue, referenceISO, onSave, onCancel, accent = false }) {
+  const inputRef = useRef(null);
+  const [value, setValue] = useState(isoToTimeInput(isoValue));
+
+  useEffect(() => {
+    // Small delay to ensure the input is rendered before focusing
+    const timer = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSave = () => {
+    if (!value) {
+      onCancel();
+      return;
+    }
+    const newISO = timeInputToISO(value, referenceISO);
+    if (newISO) {
+      onSave(newISO);
+    } else {
+      onCancel();
+    }
+  };
+
+  return (
+    <input
+      ref={inputRef}
+      type="time"
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      onBlur={handleSave}
+      onKeyDown={e => {
+        if (e.key === 'Enter') { e.target.blur(); }
+        if (e.key === 'Escape') { onCancel(); }
+      }}
+      className={`inline-time-input font-mono text-[10px] w-[70px] px-1 py-0.5 rounded
+                  bg-[var(--color-surface-1)] border border-[var(--color-amber-accent)]
+                  ${accent ? 'text-[var(--color-teal-accent)]' : 'text-[var(--color-ink-0)]'}`}
+    />
+  );
+}
+
 export default function EntryRow({ entry, isLast }) {
-  const { stopEntry, restartEntry, removeEntry, updateEntryCategory, updateEntryName, categories, tick } = useApp();
+  const { stopEntry, restartEntry, removeEntry, updateEntryCategory, updateEntryName, updateEntryTimes, categories, tick } = useApp();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const isRunning = !entry.endTime;
@@ -16,6 +57,8 @@ export default function EntryRow({ entry, isLast }) {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(entry.name);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [editingStartTime, setEditingStartTime] = useState(false);
+  const [editingEndTime, setEditingEndTime] = useState(false);
 
   const handleCategoryChange = (cat) => {
     updateEntryCategory(entry.id, cat || null);
@@ -36,6 +79,16 @@ export default function EntryRow({ entry, isLast }) {
       setShowConfirmDelete(true);
       setTimeout(() => setShowConfirmDelete(false), 2500);
     }
+  };
+
+  const handleStartTimeSave = (newISO) => {
+    updateEntryTimes(entry.id, { startTime: newISO });
+    setEditingStartTime(false);
+  };
+
+  const handleEndTimeSave = (newISO) => {
+    updateEntryTimes(entry.id, { endTime: newISO });
+    setEditingEndTime(false);
   };
 
   const borderClass = isLast ? '' : 'border-b border-[var(--color-surface-3)]';
@@ -115,15 +168,64 @@ export default function EntryRow({ entry, isLast }) {
         )}
       </td>
 
-      {/* Time range */}
+      {/* Time range — clickable for inline editing */}
       <td className="px-2 py-2 text-right">
-        <span className="text-[10px] text-[var(--color-ink-2)] font-mono whitespace-nowrap">
-          {formatTime(entry.startTime)}
-          <span className="mx-0.5">→</span>
-          {isRunning ? (
-            <span className="text-[var(--color-teal-accent)]">now</span>
+        <span className="text-[10px] text-[var(--color-ink-2)] font-mono whitespace-nowrap inline-flex items-center gap-0.5">
+          {editingStartTime ? (
+            <InlineTimeEdit
+              isoValue={entry.startTime}
+              referenceISO={entry.startTime}
+              onSave={handleStartTimeSave}
+              onCancel={() => setEditingStartTime(false)}
+            />
           ) : (
-            formatTime(entry.endTime)
+            <button
+              onClick={() => setEditingStartTime(true)}
+              className="hover:text-[var(--color-amber-accent)] transition-colors cursor-pointer
+                         hover:bg-[var(--color-amber-accent)]/10 rounded px-0.5 -mx-0.5"
+              title="Edit start time"
+            >
+              {formatTime(entry.startTime)}
+            </button>
+          )}
+          <span className="mx-0.5 select-none">&rarr;</span>
+          {isRunning ? (
+            editingEndTime ? (
+              <InlineTimeEdit
+                isoValue={new Date().toISOString()}
+                referenceISO={entry.startTime}
+                onSave={handleEndTimeSave}
+                onCancel={() => setEditingEndTime(false)}
+                accent
+              />
+            ) : (
+              <button
+                onClick={() => setEditingEndTime(true)}
+                className="text-[var(--color-teal-accent)] hover:bg-[var(--color-teal-accent)]/10
+                           rounded px-0.5 -mx-0.5 transition-colors cursor-pointer"
+                title="Set end time"
+              >
+                now
+              </button>
+            )
+          ) : (
+            editingEndTime ? (
+              <InlineTimeEdit
+                isoValue={entry.endTime}
+                referenceISO={entry.startTime}
+                onSave={handleEndTimeSave}
+                onCancel={() => setEditingEndTime(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setEditingEndTime(true)}
+                className="hover:text-[var(--color-amber-accent)] transition-colors cursor-pointer
+                           hover:bg-[var(--color-amber-accent)]/10 rounded px-0.5 -mx-0.5"
+                title="Edit end time"
+              >
+                {formatTime(entry.endTime)}
+              </button>
+            )
           )}
         </span>
       </td>

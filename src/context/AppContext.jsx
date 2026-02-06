@@ -91,9 +91,12 @@ export function AppProvider({ children }) {
     refreshTimesheets();
   }, [refreshTimesheets]);
 
-  const addEntry = useCallback((name, category) => {
+  const addEntry = useCallback((name, category, opts = {}) => {
     if (!activeSheetId) return;
-    storage.createEntry({ timesheetId: activeSheetId, name, category });
+    const entryData = { timesheetId: activeSheetId, name, category };
+    if (opts.startTime) entryData.startTime = opts.startTime;
+    if (opts.endTime) entryData.endTime = opts.endTime;
+    storage.createEntry(entryData);
     refreshEntries();
   }, [activeSheetId, refreshEntries]);
 
@@ -127,6 +130,15 @@ export function AppProvider({ children }) {
     refreshEntries();
   }, [refreshEntries]);
 
+  const updateEntryTimes = useCallback((id, updates) => {
+    // updates can contain { startTime, endTime } as ISO strings
+    const validUpdates = {};
+    if (updates.startTime !== undefined) validUpdates.startTime = updates.startTime;
+    if (updates.endTime !== undefined) validUpdates.endTime = updates.endTime;
+    storage.updateEntry(id, validUpdates);
+    refreshEntries();
+  }, [refreshEntries]);
+
   const categories = useMemo(() => storage.getCategories(), [entries]);
 
   const value = {
@@ -145,6 +157,7 @@ export function AppProvider({ children }) {
     removeEntry,
     updateEntryCategory,
     updateEntryName,
+    updateEntryTimes,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

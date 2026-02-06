@@ -65,7 +65,7 @@ export function createEntry(entry) {
     name: entry.name,
     category: entry.category || null,
     startTime: entry.startTime || new Date().toISOString(),
-    endTime: null,
+    endTime: entry.endTime || null,
   };
   data.entries.push(newEntry);
   setData(data);

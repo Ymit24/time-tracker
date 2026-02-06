@@ -101,6 +101,63 @@ export function calculateSmartTotal(entries) {
 }
 
 /**
+ * Parse a human-readable duration string into milliseconds.
+ * Accepts formats like: "1h30m", "1h 30m", "45m", "2h", "90m", "1.5h", "30s", "1h30m15s"
+ * Returns null if the string can't be parsed.
+ */
+export function parseDuration(str) {
+  if (!str || typeof str !== 'string') return null;
+  const trimmed = str.trim().toLowerCase();
+  if (!trimmed) return null;
+
+  // Try matching hours, minutes, seconds components
+  const hourMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*h/);
+  const minMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*m(?!s)/);
+  const secMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*s/);
+
+  // If nothing matched, try parsing as plain minutes (e.g., "90")
+  if (!hourMatch && !minMatch && !secMatch) {
+    const num = parseFloat(trimmed);
+    if (!isNaN(num) && num > 0) {
+      return num * 60 * 1000; // treat bare number as minutes
+    }
+    return null;
+  }
+
+  let ms = 0;
+  if (hourMatch) ms += parseFloat(hourMatch[1]) * 3600 * 1000;
+  if (minMatch) ms += parseFloat(minMatch[1]) * 60 * 1000;
+  if (secMatch) ms += parseFloat(secMatch[1]) * 1000;
+
+  return ms > 0 ? ms : null;
+}
+
+/**
+ * Convert an HH:MM time string (from <input type="time">) to an ISO string
+ * on the same date as the reference ISO string.
+ * If no reference, uses today's date.
+ */
+export function timeInputToISO(timeStr, referenceISO) {
+  if (!timeStr) return null;
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const ref = referenceISO ? new Date(referenceISO) : new Date();
+  const result = new Date(ref);
+  result.setHours(hours, minutes, 0, 0);
+  return result.toISOString();
+}
+
+/**
+ * Convert an ISO string to an HH:MM string suitable for <input type="time">.
+ */
+export function isoToTimeInput(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const h = date.getHours().toString().padStart(2, '0');
+  const m = date.getMinutes().toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+/**
  * Generate a deterministic HSL color for a category string.
  * Uses golden-angle hue distribution for maximum visual separation.
  * Returns both light and dark mode variants.
