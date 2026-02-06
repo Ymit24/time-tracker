@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { getCategoryColor } from '../lib/utils';
 
-export default function CategoryPicker({ value, onChange, categories, isDark }) {
+export default function CategoryPicker({ value, onChange, categories, isDark, size = 'compact' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value || '');
   const wrapperRef = useRef(null);
@@ -48,6 +48,10 @@ export default function CategoryPicker({ value, onChange, categories, isDark }) 
     }
   };
 
+  const inputSizeClass = size === 'form'
+    ? 'px-2.5 py-2 text-xs rounded-lg'
+    : 'px-2 py-1 text-[11px] rounded-md';
+
   return (
     <div className="relative" ref={wrapperRef}>
       <input
@@ -57,10 +61,10 @@ export default function CategoryPicker({ value, onChange, categories, isDark }) 
         onFocus={() => categories.length > 0 && setIsOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder="Tag..."
-        className="w-full px-2 py-1 text-[11px] rounded-md
+        className={`w-full ${inputSizeClass}
                    bg-[var(--color-surface-1)] border border-[var(--color-surface-3)]
                    text-[var(--color-ink-0)] placeholder-[var(--color-ink-2)]
-                   focus:border-[var(--color-amber-accent)] transition-colors"
+                   focus:border-[var(--color-amber-accent)] transition-colors`}
       />
 
       {isOpen && filteredCategories.length > 0 && (

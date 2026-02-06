@@ -126,6 +126,7 @@ export default function NewEntryForm() {
               onChange={setCategory}
               categories={categories}
               isDark={theme === 'dark'}
+              size="form"
             />
           </div>
           {/* Time options toggle */}
