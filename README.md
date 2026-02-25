@@ -1,16 +1,44 @@
-# React + Vite
+# Time Tracker (Vite + React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This app is a static frontend that stores data in browser `localStorage`.
 
-Currently, two official plugins are available:
+## Local Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+## Docker (Caddy Runtime)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Build and run directly:
 
-## Expanding the ESLint configuration
+```bash
+docker build -t time-tracker-opus46 .
+docker run --rm -p 8080:80 time-tracker-opus46
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Open `http://localhost:8080`.
+
+Compose file for Dockploy:
+
+```bash
+docker compose up --build -d
+```
+
+## Deploy on Dockploy
+
+1. Push this repository to your Git provider.
+2. In Dockploy, create a new application from the repository.
+3. Choose Docker Compose deployment and select `docker-compose.yml`.
+4. In the app's Domains section, add your domain (Dockploy/Traefik handles routing and TLS).
+5. Deploy the app.
+6. Verify the domain loads the app.
+7. Verify refreshing a client-side route does not return 404.
+
+## Notes
+
+- The container serves on port `80`.
+- Runtime server is `caddy`.
+- `docker-compose.yml` uses `expose: 80` (no host port binding), which avoids conflicts with Dockploy/Traefik on VM.
+- App data is stored in each user's browser (`localStorage`), not on the server.

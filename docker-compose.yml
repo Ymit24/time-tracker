@@ -1,0 +1,10 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: time-tracker-opus46:latest
+    container_name: time-tracker-opus46-web
+    restart: unless-stopped
+    expose:
+      - "80"
