@@ -1,5 +1,11 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import * as storage from '../lib/storage';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import * as storage from "../lib/storage";
 
 const AppContext = createContext(null);
 
@@ -17,8 +23,12 @@ export function AppProvider({ children }) {
       sheets = [sheet];
     }
     // Sort by creation date DESC
-    const sorted = [...sheets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sorted = [...sheets].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimesheets(sorted);
+
     setActiveSheetId(sorted[0].id);
   }, []);
 
@@ -32,15 +42,16 @@ export function AppProvider({ children }) {
         if (a.endTime && !b.endTime) return 1;
         return new Date(b.startTime) - new Date(a.startTime);
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries(raw);
     }
   }, [activeSheetId]);
 
   // Tick every second for live durations
   useEffect(() => {
-    const hasRunning = entries.some(e => !e.endTime);
+    const hasRunning = entries.some((e) => !e.endTime);
     if (!hasRunning) return;
-    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, [entries]);
 
@@ -57,89 +68,124 @@ export function AppProvider({ children }) {
 
   const refreshTimesheets = useCallback(() => {
     const sheets = storage.getTimesheets();
-    const sorted = [...sheets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sorted = [...sheets].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
     setTimesheets(sorted);
   }, []);
 
-  const addTimesheet = useCallback((name) => {
-    const sheet = storage.createTimesheet(name);
-    refreshTimesheets();
-    setActiveSheetId(sheet.id);
-    setEntries([]);
-    return sheet;
-  }, [refreshTimesheets]);
-
-  const removeTimesheet = useCallback((id) => {
-    storage.deleteTimesheet(id);
-    const remaining = storage.getTimesheets();
-    if (remaining.length === 0) {
-      const sheet = storage.createTimesheet();
-      setTimesheets([sheet]);
+  const addTimesheet = useCallback(
+    (name) => {
+      const sheet = storage.createTimesheet(name);
+      refreshTimesheets();
       setActiveSheetId(sheet.id);
       setEntries([]);
-    } else {
-      const sorted = [...remaining].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setTimesheets(sorted);
-      if (id === activeSheetId) {
-        setActiveSheetId(sorted[0].id);
+      return sheet;
+    },
+    [refreshTimesheets],
+  );
+
+  const removeTimesheet = useCallback(
+    (id) => {
+      storage.deleteTimesheet(id);
+      const remaining = storage.getTimesheets();
+      if (remaining.length === 0) {
+        const sheet = storage.createTimesheet();
+        setTimesheets([sheet]);
+        setActiveSheetId(sheet.id);
+        setEntries([]);
+      } else {
+        const sorted = [...remaining].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        );
+        setTimesheets(sorted);
+        if (id === activeSheetId) {
+          setActiveSheetId(sorted[0].id);
+        }
       }
-    }
-  }, [activeSheetId]);
+    },
+    [activeSheetId],
+  );
 
-  const renameTimesheet = useCallback((id, name) => {
-    storage.updateTimesheet(id, { name });
-    refreshTimesheets();
-  }, [refreshTimesheets]);
+  const renameTimesheet = useCallback(
+    (id, name) => {
+      storage.updateTimesheet(id, { name });
+      refreshTimesheets();
+    },
+    [refreshTimesheets],
+  );
 
-  const addEntry = useCallback((name, category, opts = {}) => {
-    if (!activeSheetId) return;
-    const entryData = { timesheetId: activeSheetId, name, category };
-    if (opts.startTime) entryData.startTime = opts.startTime;
-    if (opts.endTime) entryData.endTime = opts.endTime;
-    storage.createEntry(entryData);
-    refreshEntries();
-  }, [activeSheetId, refreshEntries]);
+  const addEntry = useCallback(
+    (name, category, opts = {}) => {
+      if (!activeSheetId) return;
+      const entryData = { timesheetId: activeSheetId, name, category };
+      if (opts.startTime) entryData.startTime = opts.startTime;
+      if (opts.endTime) entryData.endTime = opts.endTime;
+      storage.createEntry(entryData);
+      refreshEntries();
+    },
+    [activeSheetId, refreshEntries],
+  );
 
-  const stopEntry = useCallback((id) => {
-    storage.updateEntry(id, { endTime: new Date().toISOString() });
-    refreshEntries();
-  }, [refreshEntries]);
+  const stopEntry = useCallback(
+    (id) => {
+      storage.updateEntry(id, { endTime: new Date().toISOString() });
+      refreshEntries();
+    },
+    [refreshEntries],
+  );
 
-  const restartEntry = useCallback((entry) => {
-    if (!activeSheetId) return;
-    storage.createEntry({
-      timesheetId: activeSheetId,
-      name: entry.name,
-      category: entry.category,
-    });
-    refreshEntries();
-  }, [activeSheetId, refreshEntries]);
+  const restartEntry = useCallback(
+    (entry) => {
+      if (!activeSheetId) return;
+      storage.createEntry({
+        timesheetId: activeSheetId,
+        name: entry.name,
+        category: entry.category,
+      });
+      refreshEntries();
+    },
+    [activeSheetId, refreshEntries],
+  );
 
-  const removeEntry = useCallback((id) => {
-    storage.deleteEntry(id);
-    refreshEntries();
-  }, [refreshEntries]);
+  const removeEntry = useCallback(
+    (id) => {
+      storage.deleteEntry(id);
+      refreshEntries();
+    },
+    [refreshEntries],
+  );
 
-  const updateEntryCategory = useCallback((id, category) => {
-    storage.updateEntry(id, { category });
-    refreshEntries();
-  }, [refreshEntries]);
+  const updateEntryCategory = useCallback(
+    (id, category) => {
+      storage.updateEntry(id, { category });
+      refreshEntries();
+    },
+    [refreshEntries],
+  );
 
-  const updateEntryName = useCallback((id, name) => {
-    storage.updateEntry(id, { name });
-    refreshEntries();
-  }, [refreshEntries]);
+  const updateEntryName = useCallback(
+    (id, name) => {
+      storage.updateEntry(id, { name });
+      refreshEntries();
+    },
+    [refreshEntries],
+  );
 
-  const updateEntryTimes = useCallback((id, updates) => {
-    // updates can contain { startTime, endTime } as ISO strings
-    const validUpdates = {};
-    if (updates.startTime !== undefined) validUpdates.startTime = updates.startTime;
-    if (updates.endTime !== undefined) validUpdates.endTime = updates.endTime;
-    storage.updateEntry(id, validUpdates);
-    refreshEntries();
-  }, [refreshEntries]);
+  const updateEntryTimes = useCallback(
+    (id, updates) => {
+      // updates can contain { startTime, endTime } as ISO strings
+      const validUpdates = {};
+      if (updates.startTime !== undefined)
+        validUpdates.startTime = updates.startTime;
+      if (updates.endTime !== undefined) validUpdates.endTime = updates.endTime;
+      storage.updateEntry(id, validUpdates);
+      refreshEntries();
+    },
+    [refreshEntries],
+  );
 
-  const categories = useMemo(() => storage.getCategories(), [entries]);
+  const categories = storage.getCategories();
 
   const value = {
     timesheets,
@@ -163,8 +209,9 @@ export function AppProvider({ children }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  if (!ctx) throw new Error("useApp must be used within AppProvider");
   return ctx;
 }

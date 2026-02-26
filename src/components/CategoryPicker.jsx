@@ -1,15 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
-import { getCategoryColor } from '../lib/utils';
+import { useState, useRef, useEffect } from "react";
+import { getCategoryColor } from "../lib/utils";
 
-export default function CategoryPicker({ value, onChange, categories, isDark, size = 'compact' }) {
+export default function CategoryPicker({
+  value,
+  onChange,
+  categories,
+  isDark,
+  size = "compact",
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(value || '');
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    setInputValue(value || '');
-  }, [value]);
+  const inputValue = value || "";
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -17,40 +19,40 @@ export default function CategoryPicker({ value, onChange, categories, isDark, si
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredCategories = categories.filter(c =>
-    c.toLowerCase().includes(inputValue.toLowerCase()) && c !== inputValue
+  const filteredCategories = categories.filter(
+    (c) =>
+      c.toLowerCase().includes(inputValue.toLowerCase()) && c !== inputValue,
   );
 
   const handleSelect = (cat) => {
     onChange(cat);
-    setInputValue(cat);
     setIsOpen(false);
   };
 
   const handleInputChange = (e) => {
-    setInputValue(e.target.value);
     onChange(e.target.value);
     if (!isOpen) setIsOpen(true);
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && inputValue) {
+    if (e.key === "Enter" && inputValue) {
       onChange(inputValue);
       setIsOpen(false);
     }
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setIsOpen(false);
       inputRef.current?.blur();
     }
   };
 
-  const inputSizeClass = size === 'form'
-    ? 'px-2.5 py-2 text-xs rounded-lg'
-    : 'px-2 py-1 text-[11px] rounded-md';
+  const inputSizeClass =
+    size === "form"
+      ? "px-2.5 py-2 text-xs rounded-lg"
+      : "px-2 py-1 text-[11px] rounded-md";
 
   return (
     <div className="relative" ref={wrapperRef}>
@@ -68,10 +70,12 @@ export default function CategoryPicker({ value, onChange, categories, isDark, si
       />
 
       {isOpen && filteredCategories.length > 0 && (
-        <div className="dropdown-enter absolute top-full left-0 mt-1 w-full min-w-[120px] rounded-lg
+        <div
+          className="dropdown-enter absolute top-full left-0 mt-1 w-full min-w-[120px] rounded-lg
                         bg-[var(--color-surface-2)] border border-[var(--color-surface-3)]
-                        shadow-lg shadow-black/10 z-50 overflow-hidden p-1 max-h-36 overflow-y-auto">
-          {filteredCategories.map(cat => {
+                        shadow-lg shadow-black/10 z-50 overflow-hidden p-1 max-h-36 overflow-y-auto"
+        >
+          {filteredCategories.map((cat) => {
             const color = getCategoryColor(cat);
             return (
               <button
@@ -87,7 +91,9 @@ export default function CategoryPicker({ value, onChange, categories, isDark, si
                     backgroundColor: isDark ? color?.darkDot : color?.dot,
                   }}
                 />
-                <span className="text-[var(--color-ink-0)] truncate">{cat}</span>
+                <span className="text-[var(--color-ink-0)] truncate">
+                  {cat}
+                </span>
               </button>
             );
           })}
