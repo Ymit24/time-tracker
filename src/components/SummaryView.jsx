@@ -1,25 +1,25 @@
-import { useMemo } from 'react';
-import { useApp } from '../context/AppContext';
-import { useTheme } from '../context/ThemeContext';
+import { useMemo } from "react";
+import { useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 import {
   formatDuration,
   formatDecimalHours,
   getEntryDuration,
   calculateSmartTotal,
   getCategoryColor,
-} from '../lib/utils';
+} from "../lib/utils";
 
 export default function SummaryView() {
-  const { entries, tick } = useApp();
+  const { entries } = useApp();
   const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   const { groups, uncategorized, smartTotal, rawTotal } = useMemo(() => {
     // Group entries by category
     const categoryMap = {};
     const uncategorizedEntries = [];
 
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.category) {
         if (!categoryMap[entry.category]) {
           categoryMap[entry.category] = [];
@@ -34,7 +34,7 @@ export default function SummaryView() {
     const groups = Object.entries(categoryMap)
       .map(([category, catEntries]) => {
         const nameMap = {};
-        catEntries.forEach(entry => {
+        catEntries.forEach((entry) => {
           if (!nameMap[entry.name]) {
             nameMap[entry.name] = [];
           }
@@ -44,13 +44,19 @@ export default function SummaryView() {
         const items = Object.entries(nameMap).map(([name, nameEntries]) => ({
           name,
           count: nameEntries.length,
-          duration: nameEntries.reduce((sum, e) => sum + getEntryDuration(e), 0),
+          duration: nameEntries.reduce(
+            (sum, e) => sum + getEntryDuration(e),
+            0,
+          ),
         }));
 
         // Sort items by duration DESC
         items.sort((a, b) => b.duration - a.duration);
 
-        const totalDuration = items.reduce((sum, item) => sum + item.duration, 0);
+        const totalDuration = items.reduce(
+          (sum, item) => sum + item.duration,
+          0,
+        );
 
         return {
           category,
@@ -63,39 +69,56 @@ export default function SummaryView() {
 
     // Group uncategorized by name too
     const uncatNameMap = {};
-    uncategorizedEntries.forEach(entry => {
+    uncategorizedEntries.forEach((entry) => {
       if (!uncatNameMap[entry.name]) {
         uncatNameMap[entry.name] = [];
       }
       uncatNameMap[entry.name].push(entry);
     });
 
-    const uncategorized = Object.entries(uncatNameMap).map(([name, nameEntries]) => ({
-      name,
-      count: nameEntries.length,
-      duration: nameEntries.reduce((sum, e) => sum + getEntryDuration(e), 0),
-    }));
+    const uncategorized = Object.entries(uncatNameMap).map(
+      ([name, nameEntries]) => ({
+        name,
+        count: nameEntries.length,
+        duration: nameEntries.reduce((sum, e) => sum + getEntryDuration(e), 0),
+      }),
+    );
     uncategorized.sort((a, b) => b.duration - a.duration);
 
-    const uncategorizedTotal = uncategorized.reduce((sum, item) => sum + item.duration, 0);
+    const uncategorizedTotal = uncategorized.reduce(
+      (sum, item) => sum + item.duration,
+      0,
+    );
 
     const smartTotal = calculateSmartTotal(entries);
     const rawTotal = entries.reduce((sum, e) => sum + getEntryDuration(e), 0);
 
     return { groups, uncategorized, uncategorizedTotal, smartTotal, rawTotal };
-  }, [entries, tick]);
+  }, [entries]);
 
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-1)] border border-[var(--color-surface-3)]
-                        flex items-center justify-center mb-4">
-          <svg className="w-7 h-7 text-[var(--color-ink-2)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div
+          className="w-16 h-16 rounded-2xl bg-[var(--color-surface-1)] border border-[var(--color-surface-3)]
+                        flex items-center justify-center mb-4"
+        >
+          <svg
+            className="w-7 h-7 text-[var(--color-ink-2)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
             <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
           </svg>
         </div>
-        <p className="text-sm font-medium text-[var(--color-ink-1)]">No data to summarize</p>
-        <p className="text-xs text-[var(--color-ink-2)] mt-1">Start tracking tasks to see your summary</p>
+        <p className="text-sm font-medium text-[var(--color-ink-1)]">
+          No data to summarize
+        </p>
+        <p className="text-xs text-[var(--color-ink-2)] mt-1">
+          Start tracking tasks to see your summary
+        </p>
       </div>
     );
   }
@@ -110,7 +133,10 @@ export default function SummaryView() {
           </span>
           {rawTotal !== smartTotal && (
             <span className="text-xs text-[var(--color-ink-2)]">
-              <span className="line-through">{formatDecimalHours(rawTotal)}</span> raw
+              <span className="line-through">
+                {formatDecimalHours(rawTotal)}
+              </span>{" "}
+              raw
             </span>
           )}
         </div>
@@ -124,7 +150,13 @@ export default function SummaryView() {
         </div>
         {rawTotal !== smartTotal && (
           <p className="text-xs text-[var(--color-ink-2)] mt-2 flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Overlapping time merged — raw sum was {formatDuration(rawTotal)}
@@ -133,7 +165,7 @@ export default function SummaryView() {
       </div>
 
       {/* Category groups */}
-      {groups.map(group => {
+      {groups.map((group) => {
         const color = getCategoryColor(group.category);
         return (
           <div
@@ -153,7 +185,9 @@ export default function SummaryView() {
               <div className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: isDark ? color?.darkDot : color?.dot }}
+                  style={{
+                    backgroundColor: isDark ? color?.darkDot : color?.dot,
+                  }}
                 />
                 <span
                   className="text-sm font-bold uppercase tracking-wide"
@@ -161,8 +195,15 @@ export default function SummaryView() {
                 >
                   {group.category}
                 </span>
-                <span className="text-xs font-medium" style={{ color: isDark ? color?.darkText : color?.text, opacity: 0.6 }}>
-                  ({group.entryCount} {group.entryCount === 1 ? 'entry' : 'entries'})
+                <span
+                  className="text-xs font-medium"
+                  style={{
+                    color: isDark ? color?.darkText : color?.text,
+                    opacity: 0.6,
+                  }}
+                >
+                  ({group.entryCount}{" "}
+                  {group.entryCount === 1 ? "entry" : "entries"})
                 </span>
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -174,7 +215,10 @@ export default function SummaryView() {
                 </span>
                 <span
                   className="font-mono text-xs"
-                  style={{ color: isDark ? color?.darkText : color?.text, opacity: 0.6 }}
+                  style={{
+                    color: isDark ? color?.darkText : color?.text,
+                    opacity: 0.6,
+                  }}
                 >
                   {formatDecimalHours(group.totalDuration)}
                 </span>
@@ -187,10 +231,12 @@ export default function SummaryView() {
                 <div
                   key={item.name}
                   className={`flex items-center justify-between px-4 py-2.5
-                    ${i < group.items.length - 1 ? 'border-b border-[var(--color-surface-3)]' : ''}`}
+                    ${i < group.items.length - 1 ? "border-b border-[var(--color-surface-3)]" : ""}`}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="text-sm text-[var(--color-ink-0)] truncate">{item.name}</span>
+                    <span className="text-sm text-[var(--color-ink-0)] truncate">
+                      {item.name}
+                    </span>
                     {item.count > 1 && (
                       <span className="text-xs text-[var(--color-ink-2)] font-mono shrink-0">
                         ×{item.count}
@@ -217,11 +263,17 @@ export default function SummaryView() {
                 Uncategorized
               </span>
               <span className="text-xs text-[var(--color-ink-2)]">
-                ({uncategorized.reduce((s, i) => s + i.count, 0)} {uncategorized.reduce((s, i) => s + i.count, 0) === 1 ? 'entry' : 'entries'})
+                ({uncategorized.reduce((s, i) => s + i.count, 0)}{" "}
+                {uncategorized.reduce((s, i) => s + i.count, 0) === 1
+                  ? "entry"
+                  : "entries"}
+                )
               </span>
             </div>
             <span className="font-mono text-sm font-bold text-[var(--color-ink-2)] tracking-tight">
-              {formatDuration(uncategorized.reduce((sum, i) => sum + i.duration, 0))}
+              {formatDuration(
+                uncategorized.reduce((sum, i) => sum + i.duration, 0),
+              )}
             </span>
           </div>
           <div className="bg-[var(--color-surface-2)]">
@@ -229,10 +281,12 @@ export default function SummaryView() {
               <div
                 key={item.name}
                 className={`flex items-center justify-between px-4 py-2.5
-                  ${i < uncategorized.length - 1 ? 'border-b border-[var(--color-surface-3)]' : ''}`}
+                  ${i < uncategorized.length - 1 ? "border-b border-[var(--color-surface-3)]" : ""}`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span className="text-sm text-[var(--color-ink-0)] truncate">{item.name}</span>
+                  <span className="text-sm text-[var(--color-ink-0)] truncate">
+                    {item.name}
+                  </span>
                   {item.count > 1 && (
                     <span className="text-xs text-[var(--color-ink-2)] font-mono shrink-0">
                       ×{item.count}
