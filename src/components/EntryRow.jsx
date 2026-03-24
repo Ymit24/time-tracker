@@ -79,6 +79,7 @@ export default function EntryRow({ entry, isLast }) {
   const color = getCategoryColor(entry.category);
 
   const [editingCategory, setEditingCategory] = useState(false);
+  const [tempCategory, setTempCategory] = useState(entry.category || "");
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(entry.name);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -86,7 +87,15 @@ export default function EntryRow({ entry, isLast }) {
   const [editingEndTime, setEditingEndTime] = useState(false);
 
   const handleCategoryChange = (cat) => {
-    updateEntryCategory(entry.id, cat || null);
+    setTempCategory(cat);
+  };
+
+  const handleCategoryCommit = (cat) => {
+    updateEntryCategory(entry.id, cat.trim() || null);
+    setEditingCategory(false);
+  };
+
+  const handleCategoryCancel = () => {
     setEditingCategory(false);
   };
 
@@ -169,15 +178,21 @@ export default function EntryRow({ entry, isLast }) {
         {editingCategory ? (
           <div className="w-20">
             <CategoryPicker
-              value={entry.category || ""}
+              value={tempCategory}
               onChange={handleCategoryChange}
+              onCommit={handleCategoryCommit}
+              onCancel={handleCategoryCancel}
+              autoFocus
               categories={categories}
               isDark={isDark}
             />
           </div>
         ) : entry.category ? (
           <button
-            onClick={() => setEditingCategory(true)}
+            onClick={() => {
+              setTempCategory(entry.category || "");
+              setEditingCategory(true);
+            }}
             className="category-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold cursor-pointer
                        leading-tight whitespace-nowrap max-w-[80px] truncate"
             style={{
@@ -191,7 +206,10 @@ export default function EntryRow({ entry, isLast }) {
           </button>
         ) : (
           <button
-            onClick={() => setEditingCategory(true)}
+            onClick={() => {
+              setTempCategory("");
+              setEditingCategory(true);
+            }}
             className="text-[10px] text-[var(--color-ink-2)] hover:text-[var(--color-amber-accent)]
                        transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
           >

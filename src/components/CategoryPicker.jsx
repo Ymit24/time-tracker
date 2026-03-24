@@ -4,6 +4,9 @@ import { getCategoryColor } from "../lib/utils";
 export default function CategoryPicker({
   value,
   onChange,
+  onCommit,
+  onCancel,
+  autoFocus = false,
   categories,
   isDark,
   size = "compact",
@@ -29,7 +32,7 @@ export default function CategoryPicker({
   );
 
   const handleSelect = (cat) => {
-    onChange(cat);
+    onCommit?.(cat);
     setIsOpen(false);
   };
 
@@ -39,14 +42,20 @@ export default function CategoryPicker({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && inputValue) {
-      onChange(inputValue);
+    if (e.key === "Enter") {
+      onCommit?.(inputValue);
       setIsOpen(false);
     }
     if (e.key === "Escape") {
       setIsOpen(false);
-      inputRef.current?.blur();
+      onCancel?.();
     }
+  };
+
+  const handleBlur = (e) => {
+    if (wrapperRef.current?.contains(e.relatedTarget)) return;
+    setIsOpen(false);
+    onCommit?.(inputValue);
   };
 
   const inputSizeClass =
@@ -58,9 +67,11 @@ export default function CategoryPicker({
     <div className="relative" ref={wrapperRef}>
       <input
         ref={inputRef}
+        autoFocus={autoFocus}
         value={inputValue}
         onChange={handleInputChange}
         onFocus={() => categories.length > 0 && setIsOpen(true)}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder="Tag..."
         className={`w-full ${inputSizeClass}
