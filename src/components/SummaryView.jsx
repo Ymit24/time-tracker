@@ -15,6 +15,18 @@ export default function SummaryView() {
   const isDark = theme === "dark";
 
   const { groups, uncategorized, smartTotal, rawTotal } = useMemo(() => {
+    const compareItemNames = (a, b) => {
+      const aNum = Number(a.name);
+      const bNum = Number(b.name);
+      const aIsNum = Number.isFinite(aNum);
+      const bIsNum = Number.isFinite(bNum);
+
+      if (aIsNum && bIsNum) return aNum - bNum;
+      if (aIsNum) return -1;
+      if (bIsNum) return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    };
+
     // Group entries by category
     const categoryMap = {};
     const uncategorizedEntries = [];
@@ -50,8 +62,8 @@ export default function SummaryView() {
           ),
         }));
 
-        // Sort items by duration DESC
-        items.sort((a, b) => b.duration - a.duration);
+        // Sort items by name ASC (numeric when possible)
+        items.sort(compareItemNames);
 
         const totalDuration = items.reduce(
           (sum, item) => sum + item.duration,
@@ -76,14 +88,12 @@ export default function SummaryView() {
       uncatNameMap[entry.name].push(entry);
     });
 
-    const uncategorized = Object.entries(uncatNameMap).map(
-      ([name, nameEntries]) => ({
-        name,
-        count: nameEntries.length,
-        duration: nameEntries.reduce((sum, e) => sum + getEntryDuration(e), 0),
-      }),
-    );
-    uncategorized.sort((a, b) => b.duration - a.duration);
+    const uncategorized = Object.entries(uncatNameMap).map(([name, nameEntries]) => ({
+      name,
+      count: nameEntries.length,
+      duration: nameEntries.reduce((sum, e) => sum + getEntryDuration(e), 0),
+    }));
+    uncategorized.sort(compareItemNames);
 
     const uncategorizedTotal = uncategorized.reduce(
       (sum, item) => sum + item.duration,
